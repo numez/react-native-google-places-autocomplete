@@ -646,6 +646,13 @@ export default class GooglePlacesAutocomplete extends Component {
   }
 
   _getFlatList = () => {
+    //tmp workaround
+    if(this.props.fixList) return this.state.dataSource.map((item, index) => (
+      <View key={index}>
+        {this._renderRow(item)}
+      </View>
+    ));
+	
     const keyGenerator = () => (
       Math.random().toString(36).substr(2, 10)
     );
