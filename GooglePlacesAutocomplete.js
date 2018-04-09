@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import Qs from 'qs';
 import debounce from 'lodash.debounce';
+import Geolocation from 'react-native-geolocation-service';
 
 const WINDOW = Dimensions.get('window');
 
@@ -182,31 +183,34 @@ export default class GooglePlacesAutocomplete extends Component {
       }
     }
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        if (this.props.nearbyPlacesAPI === 'None') {
-          let currentLocation = {
-            description: this.props.currentLocationLabel,
-            geometry: {
-              location: {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude
-              }
+    const onResult = (position) => {
+      if (this.props.nearbyPlacesAPI === 'None') {
+        let currentLocation = {
+          description: this.props.currentLocationLabel,
+          geometry: {
+            location: {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
             }
-          };
+          }
+        };
 
-          this._disableRowLoaders();
-          this.props.onPress(currentLocation, currentLocation);
-        } else {
-          this._requestNearby(position.coords.latitude, position.coords.longitude);
-        }
-      },
-      (error) => {
         this._disableRowLoaders();
-        alert(error.message);
-      },
-      options
-    );
+        this.props.onPress(currentLocation, currentLocation);
+      } else {
+        this._requestNearby(position.coords.latitude, position.coords.longitude);
+      }
+    };
+
+    const onError = (error) => {
+      this._disableRowLoaders();
+      alert(error.message);
+    };
+
+
+    if(Geolocation) Geolocation.getCurrentPosition(onResult, onError);
+    else navigator.geolocation.getCurrentPosition(onResult, onError, options);
+
   }
 
   _onPress = (rowData) => {
